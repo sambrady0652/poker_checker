@@ -1,17 +1,14 @@
 require 'helpers/validator'
 require 'helpers/hand_creator'
 require 'helpers/pretty_printer'
-require 'helpers/counting_help'
 
 class CardEvaluator
     include Validator
     include HandCreator
     include PrettyPrinter
-    include CountingHelp
 
     INVALID = "Invalid hand".freeze
-    HANDS = %i(
-      royal_flush
+    POSSIBLE_HANDS = %i(
       straight_flush
       four_of_a_kind
       full_house
@@ -23,29 +20,26 @@ class CardEvaluator
     ).freeze    
 
     def initialize(cards: )
-        @cards = hash(cards)
+      @cards = hash(cards)
     end
 
     def evaluate
-        return INVALID if @cards == INVALID
-        hand = HANDS.find { |hand| send(hand) }
-        hand ? pretty_print(hand) : high_card
+      return INVALID if @cards == INVALID
+      hand = POSSIBLE_HANDS.find { |hand| send(hand) }
+      hand ? pretty_print(hand) : high_card
     end
 
-    def royal_flush
-      straight_flush && @cards.keys == [10, 11, 12, 13, 14]
-    end 
-
+    # Possible Hands
     def straight_flush
       straight && flush
     end 
 
     def four_of_a_kind
-      count(@cards).include?(4)
+      card_count.include?(4)
     end 
 
     def full_house
-      (count(@cards) - [2, 3]).empty?
+      (card_count - [2, 3]).empty?
     end 
 
     def flush
@@ -53,22 +47,29 @@ class CardEvaluator
     end 
 
     def straight
-      @cards.keys == (@cards.keys[0]..@cards.keys[-1]).to_a
+      # This one is ugly because Aces can be both High and Low.
+      # Since this is the only condition something like this will happen, I treated it as an edge case
+      @cards.keys == (@cards.keys[0]..@cards.keys[-1]).to_a || @cards.keys == [2, 3, 4, 5, 14]
     end 
 
     def three_of_a_kind
-      count(@cards).include?(3)
+      card_count.include?(3)
     end 
 
     def two_pair
-      count(@cards).filter { |count| count == 2 }.size == 2
+      card_count.filter { |count| count == 2 }.size == 2
     end 
 
     def pair
-      count(@cards).filter { |count| count == 2 }.size == 1
+      card_count.any? { |count| count == 2 }
     end 
 
     def high_card
       prettify_high_card(@cards)
     end 
+
+    # Helper
+    def card_count
+      @cards.values.map { |suits_arr| suits_arr.length }
+    end
 end

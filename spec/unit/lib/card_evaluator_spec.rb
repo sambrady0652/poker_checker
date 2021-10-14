@@ -10,24 +10,22 @@ RSpec.describe CardEvaluator do
         it 'returns the expected value' do
             expect(subject).to eq("Straight Flush")
         end
-    end
 
-    describe '#royal_flush' do
-        let(:subject) { instance.royal_flush}
+        context 'high card' do
+            let(:cards) { "2H 3H 4H 5H 7D" }
 
-        context 'the hand matches expectation' do 
-            let(:cards) { "10h jh qh kh ah"}
-            it 'should return true' do
-                expect(subject).to eq(true)
+            it 'returns the expected value' do
+                expect(subject).to eq("High Card: 7 of Diamonds")
             end
-        end 
+        end
 
-        context 'the hand does not match expectation' do 
-            let(:cards) { "9h jh qh kh ah"}
-            it 'should return true' do
-                expect(subject).to eq(false)
+        context 'invalid hand' do
+            let(:cards) { "2H 3H 4H 5H " }
+        
+            it 'returns the expected value' do
+                expect(subject).to eq("Invalid hand")
             end
-        end 
+        end
     end
 
     describe '#straight_flush' do
@@ -109,6 +107,14 @@ RSpec.describe CardEvaluator do
             let(:cards) { "6h 7s 8d 9c 10h"}
             it 'should return true' do
                 expect(subject).to eq(true)
+            end
+
+            context 'and Ace is low' do
+                let(:cards) { "ah 2c 3d 4h 5d" }
+
+                it 'should return true' do
+                    expect(subject).to eq(true)
+                end
             end
         end 
 
